@@ -1,12 +1,15 @@
 import json
+import os
 import boto3
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('WeatherLogs')
 
-API_KEY = 'YOUR_API_KEY_HERE'
+# Set OPENWEATHER_API_KEY in the Lambda function's environment variables
+API_KEY = os.environ.get('OPENWEATHER_API_KEY')
 
 def lambda_handler(event, context):
     params = event.get('queryStringParameters') or {}
@@ -19,7 +22,7 @@ def lambda_handler(event, context):
             'body': json.dumps({'error': 'City parameter is required'})
         }
 
-    url = f'https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric'
+    url = f'https://api.openweathermap.org/data/2.5/weather?q={urllib.parse.quote(city)}&appid={API_KEY}&units=metric'
 
     try:
         with urllib.request.urlopen(url) as response:
